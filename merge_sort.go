@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func MergeSort(data []int, p, r int) {
 	if p >= r {
 		return
@@ -15,9 +13,8 @@ func MergeSort(data []int, p, r int) {
 
 func Merge(data []int, p, q, r int) {
 	i, j := 0, 0
-	fmt.Println(data[p : r+1])
-	b := make([]int, q+1-p, len(data))
-	c := make([]int, r-q, len(data))
+	b := make([]int, q+1-p)
+	c := make([]int, r-q)
 	copy(b, data[p:q+1])
 	copy(c, data[q+1:r+1])
 
