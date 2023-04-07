@@ -1,34 +1,45 @@
 package main
 
 import (
-	"fmt"
 	"kubernetes/pkg/util/slice"
 	"math"
 )
 
-func dijkstra() string {
+func dijkstra() (string, int) {
 	graph := map[string]map[string]int{
 		"start": {
-			"A": 6,
+			"A": 5,
 			"B": 2,
 		},
 		"A": {
-			"fin": 1,
+			"C": 4,
+			"D": 2,
 		},
 		"B": {
-			"A":   3,
-			"fin": 5,
+			"A": 8,
+			"D": 7,
+		},
+		"C": {
+			"D":   6,
+			"fin": 3,
+		},
+		"D": {
+			"fin": 1,
 		},
 		"fin": {},
 	}
 	costs := map[string]int{
-		"A":   6,
+		"A":   5,
 		"B":   2,
+		"C":   math.MaxInt,
+		"D":   math.MaxInt,
 		"fin": math.MaxInt,
 	}
 	parents := map[string]string{
 		"A":   "start",
 		"B":   "start",
+		"C":   "",
+		"D":   "",
 		"fin": "",
 	}
 	processed := make([]string, 0)
@@ -45,7 +56,12 @@ func dijkstra() string {
 		}
 		processed = append(processed, node)
 	}
-	return fmt.Sprintf("%v", parents)
+	route := "fin"
+	for prev, ok := parents["fin"]; ok; prev, ok = parents[prev] {
+		route = prev + " -> " + route
+	}
+
+	return route, costs["fin"]
 }
 
 func unprocessedLowCost(costs map[string]int, processed []string) string {
