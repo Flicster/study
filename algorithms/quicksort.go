@@ -1,4 +1,4 @@
-package main
+package algorithms
 
 func QuickSort(data []int) []int {
 	if len(data) < 2 {

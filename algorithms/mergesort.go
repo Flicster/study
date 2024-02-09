@@ -1,4 +1,4 @@
-package main
+package algorithms
 
 func MergeSort(data []int, p, r int) {
 	if p >= r {

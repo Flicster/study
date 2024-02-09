@@ -1,8 +1,9 @@
-package main
+package algorithms
 
 import (
-	"kubernetes/pkg/util/slice"
 	"math"
+
+	"kubernetes/pkg/util/slice"
 )
 
 func dijkstra() (string, int) {
