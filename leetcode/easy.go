@@ -418,3 +418,24 @@ func isIsomorphic(s string, t string) bool {
 	}
 	return ss == ts
 }
+
+func Tribonacci(n int) int {
+	q := make([]int, 0)
+	for x := 0; x <= n; x++ {
+		if x == 0 {
+			q = append(q, 0)
+			continue
+		}
+		if x == 1 || x == 2 {
+			q = append(q, 1)
+			continue
+		}
+		last := 0
+		for _, v := range q {
+			last += v
+		}
+		q = q[1:]
+		q = append(q, last)
+	}
+	return q[len(q)-1]
+}
