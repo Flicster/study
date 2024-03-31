@@ -3,7 +3,6 @@ package leetcode
 import (
 	"fmt"
 	"strings"
-	"unicode"
 )
 
 func searchInsert(nums []int, target int) int {
@@ -281,23 +280,15 @@ func merge(nums1 []int, m int, nums2 []int, n int) {
 	}
 }
 
-func isPalindrome(s string) bool {
-	str := make([]string, 0, len(s))
-	for _, c := range s {
-		char := fmt.Sprintf("%c", c)
-		if unicode.IsLetter(c) || unicode.IsNumber(c) {
-			str = append(str, strings.ToLower(char))
+func IsPalindrome(s string) bool {
+	for x := 0; x < len(s)/2; x++ {
+		first := fmt.Sprintf("%c", s[x])
+		last := fmt.Sprintf("%c", s[len(s)-1-x])
+		if last != first {
+			return false
 		}
 	}
-	forward := ""
-	backward := ""
-	for x := 0; x < len(str); x++ {
-		forward += str[x]
-	}
-	for x := len(str) - 1; x >= 0; x-- {
-		backward += str[x]
-	}
-	return forward == backward
+	return true
 }
 
 func canConstruct(ransomNote string, magazine string) bool {
@@ -438,4 +429,44 @@ func Tribonacci(n int) int {
 		q = append(q, last)
 	}
 	return q[len(q)-1]
+}
+
+func ClimbStairs(n int) int {
+	if n == 1 {
+		return 1
+	}
+	last := 0
+	first, second := 1, 1
+	for x := 1; x < n; x++ {
+		last = first + second
+		first = second
+		second = last
+	}
+	return last
+}
+
+func MinCostClimbingStairs(cost []int) int {
+	res := make([]int, len(cost))
+	for k, c := range cost {
+		if k == 0 {
+			res[k] = c
+			continue
+		}
+		if k == 1 {
+			res[k] = c
+			continue
+		}
+		first := res[k-2] + c
+		second := res[k-1] + c
+		res[k] = first
+		if res[k] > second {
+			res[k] = second
+		}
+	}
+	r := res[len(res)-1]
+	if r > res[len(res)-2] {
+		r = res[len(res)-2]
+	}
+
+	return r
 }

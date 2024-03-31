@@ -1,6 +1,8 @@
 package leetcode
 
-import "slices"
+import (
+	"slices"
+)
 
 func TwoSum(numbers []int, target int) []int {
 	for x := 0; x < len(numbers); x++ {
@@ -144,4 +146,135 @@ func MinPathSum(grid [][]int) int {
 	last := res[len(res)-1]
 
 	return last[len(last)-1]
+}
+
+func MinimumTotal(triangle [][]int) int {
+	if len(triangle) == 0 {
+		return 0
+	}
+	res := make([][]int, len(triangle))
+	for rk, r := range triangle {
+		res[rk] = make([]int, len(r))
+		for ck, c := range r {
+			var m *int
+			if rk > 0 && len(triangle[rk-1]) > ck {
+				m = &res[rk-1][ck]
+			}
+			if rk > 0 && ck > 0 && (m == nil || res[rk-1][ck-1] < *m) {
+				m = &res[rk-1][ck-1]
+			}
+
+			res[rk][ck] = c
+			if m != nil {
+				res[rk][ck] += *m
+			}
+		}
+	}
+	path := 0
+	for k, p := range res[len(triangle)-1] {
+		if k == 0 {
+			path = p
+			continue
+		}
+		if p < path {
+			path = p
+		}
+	}
+	return path
+}
+
+func MinFallingPathSum(matrix [][]int) int {
+	if len(matrix) == 0 {
+		return 0
+	}
+	res := make([][]int, len(matrix))
+	for rk, r := range matrix {
+		res[rk] = make([]int, len(r))
+		for ck, c := range r {
+			if rk == 0 {
+				res[rk][ck] = c
+				continue
+			}
+			m := res[rk-1][ck]
+			if ck-1 >= 0 && res[rk-1][ck-1] < m {
+				m = res[rk-1][ck-1]
+			}
+			if ck+1 < len(res[rk-1]) && res[rk-1][ck+1] < m {
+				m = res[rk-1][ck+1]
+			}
+			res[rk][ck] = c + m
+		}
+	}
+	path := 0
+	for k, p := range res[len(matrix)-1] {
+		if k == 0 {
+			path = p
+			continue
+		}
+		if p < path {
+			path = p
+		}
+	}
+	return path
+}
+
+func MaximalSquare(matrix [][]byte) int {
+	best := 0
+	res := make([][]int, len(matrix))
+	for rk, r := range matrix {
+		res[rk] = make([]int, len(r))
+		for ck, c := range r {
+			if c == '0' {
+				continue
+			}
+			left := 0
+			if ck > 0 {
+				left = res[rk][ck-1]
+			}
+			diag := 0
+			if rk > 0 && ck > 0 {
+				diag = res[rk-1][ck-1]
+			}
+			up := 0
+			if rk > 0 {
+				up = res[rk-1][ck]
+			}
+			res[rk][ck] = min(left, diag, up) + 1
+			if res[rk][ck] > best {
+				best = res[rk][ck]
+			}
+		}
+	}
+	return best * best
+}
+
+func LongestPalindrome(s string) string {
+	longest := ""
+	for ck := range s {
+		for x := len(s) - 1; x >= 0; x-- {
+			if x+1 <= ck {
+				break
+			}
+			sub := s[ck : x+1]
+			if IsPalindrome(sub) && len(sub) > len(longest) {
+				if len(sub) == len(s) {
+					return s
+				}
+				longest = sub
+				break
+			}
+		}
+	}
+	return longest
+}
+
+func SetZeroes(matrix [][]int) {
+	//for rk, r := range matrix {
+	//	for ck, c := range r {
+	//		if c != 0 {
+	//			continue
+	//		}
+	//		for x := 0; x < len()
+	//	}
+	//}
 }
