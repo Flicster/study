@@ -2,6 +2,7 @@ package leetcode
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -151,6 +152,7 @@ func calcHappy(n int) int {
 }
 
 type ListNode struct {
+	Prev *ListNode
 	Val  int
 	Next *ListNode
 }
@@ -469,4 +471,120 @@ func MinCostClimbingStairs(cost []int) int {
 	}
 
 	return r
+}
+
+type TreeNode struct {
+	Val   int
+	Left  *TreeNode
+	Right *TreeNode
+}
+
+func CountNodes(root *TreeNode) int {
+	if root == nil {
+		return 0
+	}
+	if root.Left == nil && root.Right == nil {
+		return 1
+	}
+	return 1 + CountNodes(root.Left) + CountNodes(root.Right)
+}
+
+//func HasPathSum(root *TreeNode, targetSum int) bool {
+//	if root == nil {
+//		return false
+//	}
+//	if root.Right == nil && root.Left == nil {
+//		return false
+//	}
+//	curr := 0
+//	sums := []int{}
+//	for root.Right != nil && root.Left != nil {
+//
+//	}
+//}
+
+func addBinary(a string, b string) string {
+	diff := len(a) - len(b)
+	if diff < 0 {
+		diff *= -1
+	}
+	for i := 0; i < diff; i++ {
+		if len(a) < len(b) {
+			a = "0" + a
+			continue
+		}
+		if len(a) > len(b) {
+			b = "0" + b
+			continue
+		}
+	}
+	mem := 0
+	res := ""
+	for i := len(a) - 1; i >= 0; i-- {
+		up, _ := strconv.Atoi(string(a[i]))
+		down, _ := strconv.Atoi(string(b[i]))
+		switch {
+		case up+down+mem == 0:
+			res = "0" + res
+			mem = 0
+		case up+down+mem == 1:
+			res = "1" + res
+			mem = 0
+		case up+down+mem == 2:
+			res = "0" + res
+			mem = 1
+		case up+down+mem == 3:
+			res = "1" + res
+			mem = 1
+		}
+		if i == 0 && mem != 0 {
+			res = "1" + res
+		}
+	}
+	return res
+}
+
+func deleteDuplicates(head *ListNode) *ListNode {
+	for node := head; node != nil; node = node.Next {
+		for node.Next != nil && node.Next.Val == node.Val {
+			node.Next = node.Next.Next
+		}
+	}
+	return head
+}
+
+func Walk(t *ListNode, ch chan int) {
+	if t == nil {
+		return
+	}
+	ch <- t.Val
+	if t.Prev != nil {
+		Walk(t.Prev, ch)
+	}
+	if t.Next != nil {
+		Walk(t.Next, ch)
+	}
+}
+
+func encode(s string) string {
+	res := ""
+	counter := 1
+	for k, l := range s {
+		if k == 0 {
+			res += fmt.Sprintf("%c", l)
+			continue
+		}
+		prevL := fmt.Sprintf("%c", s[k-1])
+		currL := fmt.Sprintf("%c", l)
+		if prevL == currL {
+			counter += 1
+		} else {
+			if counter != 1 {
+				res += fmt.Sprintf("%d", counter)
+				counter = 1
+			}
+			res += currL
+		}
+	}
+	return res
 }
