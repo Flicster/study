@@ -282,7 +282,7 @@ func merge(nums1 []int, m int, nums2 []int, n int) {
 	}
 }
 
-func IsPalindrome(s string) bool {
+func isPalindrome(s string) bool {
 	for x := 0; x < len(s)/2; x++ {
 		first := fmt.Sprintf("%c", s[x])
 		last := fmt.Sprintf("%c", s[len(s)-1-x])
@@ -479,29 +479,15 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
-func CountNodes(root *TreeNode) int {
+func countNodes(root *TreeNode) int {
 	if root == nil {
 		return 0
 	}
 	if root.Left == nil && root.Right == nil {
 		return 1
 	}
-	return 1 + CountNodes(root.Left) + CountNodes(root.Right)
+	return 1 + countNodes(root.Left) + countNodes(root.Right)
 }
-
-//func HasPathSum(root *TreeNode, targetSum int) bool {
-//	if root == nil {
-//		return false
-//	}
-//	if root.Right == nil && root.Left == nil {
-//		return false
-//	}
-//	curr := 0
-//	sums := []int{}
-//	for root.Right != nil && root.Left != nil {
-//
-//	}
-//}
 
 func addBinary(a string, b string) string {
 	diff := len(a) - len(b)
@@ -585,6 +571,268 @@ func encode(s string) string {
 			}
 			res += currL
 		}
+	}
+	return res
+}
+
+func isSymmetric(root *TreeNode) bool {
+	if root == nil || (root.Left == nil && root.Right == nil) {
+		return true
+	}
+	stack := []*TreeNode{
+		root.Left,
+		root.Right,
+	}
+	for len(stack) > 0 {
+		left := stack[0]
+		right := stack[1]
+		stack = stack[2:]
+
+		if left == nil && right == nil {
+			continue
+		}
+		if left == nil || right == nil || left.Val != right.Val {
+			return false
+		}
+
+		stack = append(stack, left.Left, right.Right, left.Right, right.Left)
+	}
+	return true
+}
+
+func inorderTraversal(root *TreeNode) []int {
+	res := []int{}
+	if root == nil {
+		return res
+	}
+	res = append(res, inorderTraversal(root.Left)...)
+	res = append(res, root.Val)
+	res = append(res, inorderTraversal(root.Right)...)
+	return res
+}
+
+func maxDepth(root *TreeNode) int {
+	depth := 0
+	if root == nil {
+		return depth
+	}
+	depth = 1
+	leftDepth := maxDepth(root.Left)
+	rightDepth := maxDepth(root.Right)
+	if leftDepth > rightDepth {
+		return depth + leftDepth
+	}
+	return depth + rightDepth
+}
+
+func removeElements(head *ListNode, val int) *ListNode {
+	if head == nil {
+		return nil
+	}
+
+	var res *ListNode
+	var currRes *ListNode
+	for head != nil {
+		if head.Val != val {
+			if res == nil {
+				res = &ListNode{Val: head.Val}
+				currRes = res
+			} else {
+				currRes.Next = &ListNode{Val: head.Val}
+				currRes = currRes.Next
+			}
+		}
+		head = head.Next
+	}
+	return res
+}
+
+func reverseList(head *SinglyListNode) *SinglyListNode {
+	if head == nil {
+		return nil
+	}
+	queue := []int{}
+	for head != nil {
+		queue = append(queue, head.Val)
+		head = head.Next
+	}
+	var res *SinglyListNode
+	curr := res
+	for x := len(queue) - 1; x >= 0; x-- {
+		if res == nil {
+			res = &SinglyListNode{
+				Val: queue[x],
+			}
+			curr = res
+			continue
+		}
+		curr.Next = &SinglyListNode{
+			Val: queue[x],
+		}
+		curr = curr.Next
+	}
+	return res
+}
+
+type SinglyListNode struct {
+	Val  int
+	Next *SinglyListNode
+}
+
+func containsNearbyDuplicate(nums []int, k int) bool {
+	vv := make(map[int]int)
+	for ni, n := range nums {
+		pi, ok := vv[n]
+		if ok && ni-pi <= k {
+			return true
+		}
+		vv[n] = ni
+	}
+	return false
+}
+
+func sortedArrayToBST(nums []int) *TreeNode {
+	if len(nums) == 0 {
+		return nil
+	}
+	mid := len(nums) / 2
+	res := &TreeNode{
+		Val: nums[mid],
+	}
+	res.Left = sortedArrayToBST(nums[:mid])
+	res.Right = sortedArrayToBST(nums[mid+1:])
+	return res
+}
+
+func minDepth(root *TreeNode) int {
+	res := 0
+	if root == nil {
+		return res
+	}
+
+	res += 1
+	if root.Left == nil && root.Right == nil {
+		return res
+	}
+	left := minDepth(root.Left)
+	right := minDepth(root.Right)
+	if left == 0 {
+		return right + res
+	}
+	if right == 0 {
+		return left + res
+	}
+	if left < right {
+		return left + res
+	}
+	return right + res
+}
+
+func generate(numRows int) [][]int {
+	res := make([][]int, 0, numRows)
+	for x := 0; x < numRows; x++ {
+		raw := make([]int, 0, x)
+		for y := 0; y <= x; y++ {
+			v := 1
+			if x > 0 && res[x-1] != nil && y-1 >= 0 && y < len(res[x-1]) {
+				prevLeft := res[x-1][y-1]
+				prev := res[x-1][y]
+				v = prevLeft + prev
+			}
+			raw = append(raw, v)
+		}
+		res = append(res, raw)
+	}
+	return res
+}
+
+func preorderTraversal(root *TreeNode) []int {
+	if root == nil {
+		return []int{}
+	}
+	res := []int{
+		root.Val,
+	}
+	return append(res, append(preorderTraversal(root.Left), preorderTraversal(root.Right)...)...)
+}
+
+func postorderTraversal(root *TreeNode) []int {
+	if root == nil {
+		return []int{}
+	}
+	res := []int{
+		root.Val,
+	}
+	left := preorderTraversal(root.Left)
+	right := preorderTraversal(root.Right)
+	lr := append(left, right...)
+	res = append(lr, res...)
+	return res
+}
+
+func hammingWeight(n int) int {
+	bn := fmt.Sprintf("%b", n)
+	res := 0
+	for _, b := range bn {
+		if b == '1' {
+			res++
+		}
+	}
+	return res
+}
+
+func getRow(rowIndex int) []int {
+	res := make([][]int, 0)
+	for x := 0; x <= rowIndex; x++ {
+		row := make([]int, 0)
+		for y := 0; y <= x; y++ {
+			v := 1
+			if x-1 >= 0 && y-1 >= 0 && y < len(res[x-1]) {
+				prevLeft := res[x-1][y-1]
+				prev := res[x-1][y]
+				v = prevLeft + prev
+			}
+			row = append(row, v)
+		}
+		if rowIndex == x {
+			return row
+		}
+		res = append(res, row)
+	}
+	return res[rowIndex]
+}
+
+func reverseBits(num uint32) uint32 {
+	bn := fmt.Sprintf("%0.32b", num)
+	rs := ""
+	for i := len(bn) - 1; i >= 0; i-- {
+		rs += string(bn[i])
+	}
+	res, _ := strconv.ParseUint(rs, 2, 32)
+	return uint32(res)
+}
+
+func getIntersectionNode(headA, headB *ListNode) *ListNode {
+	aCurr := headA
+	for aCurr != nil {
+		bCurr := headB
+		for bCurr != nil {
+			println(bCurr.Val)
+			bCurr = bCurr.Next
+		}
+		println(aCurr.Val)
+		aCurr = aCurr.Next
+	}
+	return nil
+}
+
+func convertToTitle(columnNumber int) string {
+	res := ""
+	for columnNumber > 0 {
+		columnNumber--
+		col := 'A' + rune(columnNumber%26)
+		res = string(col) + res
+		columnNumber /= 26
 	}
 	return res
 }

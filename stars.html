@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Star Map</title>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/gl-matrix@2.8.1/dist/gl-matrix-min.js"></script>
+<script>
+    // Создаем холст для WebGL
+    const canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Инициализация WebGL
+    const gl = canvas.getContext('webgl');
+    if (!gl) {
+        console.error('WebGL не поддерживается');
+    }
+
+    // Шейдеры: вершины и фрагменты
+    const vertexShaderSource = `
+        attribute vec3 aPosition;
+        attribute float aSize;
+        attribute vec3 aColor;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        varying vec3 vColor;
+
+        void main() {
+            gl_PointSize = aSize;
+            gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+            vColor = aColor;
+        }
+    `;
+
+    const fragmentShaderSource = `
+        precision mediump float;
+        varying vec3 vColor;
+
+        void main() {
+            gl_FragColor = vec4(vColor, 1.0);
+        }
+    `;
+
+    // Утилиты для компиляции шейдеров
+    function compileShader(source, type) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error('Ошибка компиляции шейдера:', gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
+        }
+
+        return shader;
+    }
+
+    // Программа шейдеров
+    const vertexShader = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
+    const fragmentShader = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error('Ошибка линковки программы:', gl.getProgramInfoLog(program));
+    }
+
+    gl.useProgram(program);
+
+    // Генерация данных для звёзд
+    const stars = Array.from({ length: 1000 }, () => {
+        const angle = Math.random() * Math.PI * 2; // Угол вокруг оси
+        const radius = Math.random() * 0.5 + 0.5; // Расстояние от оси (труба)
+        const z = (Math.random() - 0.5) * 2; // z-координата от -1 до 1
+
+        return {
+            position: [
+                Math.cos(angle) * radius, // x = cos(angle) * radius
+                Math.sin(angle) * radius, // y = sin(angle) * radius
+                z                    // z
+            ],
+            size: Math.random() * 5 + 1,    // Размер от 1 до 6
+            color: [
+                Math.random(), // Красный
+                Math.random(), // Зелёный
+                Math.random()  // Синий
+            ]
+        };
+    });
+
+    // Подготовка данных для WebGL
+    const positions = new Float32Array(stars.flatMap(s => s.position));
+    const sizes = new Float32Array(stars.map(s => s.size));
+    const colors = new Float32Array(stars.flatMap(s => s.color));
+
+    // Создание буферов
+    function createBuffer(data, attribute, size) {
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+
+        const location = gl.getAttribLocation(program, attribute);
+        gl.enableVertexAttribArray(location);
+        gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
+
+        return buffer;
+    }
+
+    const positionBuffer = createBuffer(positions, 'aPosition', 3);
+    const sizeBuffer = createBuffer(sizes, 'aSize', 1);
+    const colorBuffer = createBuffer(colors, 'aColor', 3);
+
+    // Матрицы камеры
+    let modelViewMatrix = mat4.create();
+    let projectionMatrix = mat4.create();
+
+    // Настройка проекции
+    mat4.perspective(projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 0.1, 100);
+
+    // Управление камерой
+    let rotationX = 0;
+    let rotationY = 0;
+    let zoom = -5;
+
+    canvas.addEventListener('wheel', (event) => {
+        zoom += event.deltaY * 0.01;
+        zoom = Math.min(Math.max(zoom, -20), -2);
+    });
+
+    let isDragging = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    canvas.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (event) => {
+        if (isDragging) {
+            const deltaX = event.clientX - lastX;
+            const deltaY = event.clientY - lastY;
+            lastX = event.clientX;
+            lastY = event.clientY;
+
+            rotationX += deltaY * 0.01;
+            rotationY += deltaX * 0.01;
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+        isDragging = false;
+    });
+
+    // Очистка экрана и отрисовка
+    const uModelViewMatrix = gl.getUniformLocation(program, 'uModelViewMatrix');
+    const uProjectionMatrix = gl.getUniformLocation(program, 'uProjectionMatrix');
+
+    function render() {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.identity(modelViewMatrix);
+        mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, zoom]);
+        mat4.rotateX(modelViewMatrix, modelViewMatrix, rotationX);
+        mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
+
+        gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
+        gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
+
+        gl.drawArrays(gl.POINTS, 0, stars.length);
+    }
+
+    // Анимация (для эффекта динамики)
+    function animate() {
+        render();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+</body>
+</html>

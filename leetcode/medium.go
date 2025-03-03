@@ -1,7 +1,10 @@
 package leetcode
 
 import (
+	"fmt"
+	"math"
 	"slices"
+	"strconv"
 )
 
 func TwoSum(numbers []int, target int) []int {
@@ -277,4 +280,66 @@ func SetZeroes(matrix [][]int) {
 	//		for x := 0; x < len()
 	//	}
 	//}
+}
+
+func LetterCombinations(digits string) []string {
+	if len(digits) == 0 {
+		return []string{}
+	}
+	phone := map[string]string{
+		"2": "abc",
+		"3": "def",
+		"4": "ghi",
+		"5": "jkl",
+		"6": "mno",
+		"7": "pqrs",
+		"8": "tuv",
+		"9": "wxyz",
+	}
+	res := make([][]string, len(digits))
+	for x := 0; x < len(digits); x++ {
+		ll := phone[string(digits[x])]
+		if x == 0 {
+			for _, l := range ll {
+				res[x] = append(res[x], string(l))
+			}
+			continue
+		}
+		for _, pl := range res[x-1] {
+			for _, l := range ll {
+				res[x] = append(res[x], pl+string(l))
+			}
+		}
+	}
+	return res[len(digits)-1]
+}
+
+func reverse(x int) int {
+	if x == 0 {
+		return 0
+	}
+	minus := false
+	if x < 0 {
+		minus = true
+		x *= -1
+	}
+
+	xs := fmt.Sprintf("%d", x)
+	ress := ""
+	fi := false
+	for i := len(xs) - 1; i >= 0; i-- {
+		if string(xs[i]) == "0" && !fi {
+			continue
+		}
+		ress += string(xs[i])
+		fi = true
+	}
+	res, _ := strconv.ParseInt(ress, 0, 64)
+	if minus {
+		res *= -1
+	}
+	if res > math.MaxInt32 {
+		res = 0
+	}
+	return int(res)
 }
